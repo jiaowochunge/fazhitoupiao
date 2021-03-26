@@ -4,10 +4,6 @@ var myChart = echarts.init(dom);
 var option;
 
 var stat = [
-  {
-    name: '程七零',
-    data: cql_data.map(item => [item.mins, item.count])
-  }
 ]
 
 option = {

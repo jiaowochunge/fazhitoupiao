@@ -1,7 +1,9 @@
 const { getCachedResult, storeCache } = require('./simpleCache')
 const express = require('express')
+const basicAuth = require('express-basic-auth')
 const mysql = require('mysql')
 const argv = require('minimist')(process.argv.slice(2))
+const authUsers = require('./auth-users.json');
 
 const { u: user, p: password, database } = argv
 if (!user || !password) {
@@ -10,6 +12,12 @@ if (!user || !password) {
 }
 
 const app = express()
+app.use(basicAuth({
+	users: authUsers,
+	challenge: true,
+  realm: 'Imb4T3st4ppXN'
+}))
+
 const port = 3000
 
 const statSQL = `select count(*) as count, mins from (select concat(date_format(created_at,'%Y-%m-%d %H:'), rpad(floor(minute(created_at) / 10) * 10, 2, 0)) as mins from fazhi_toupiao where vote_content like ?) as t group by mins;`
