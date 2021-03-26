@@ -4,6 +4,7 @@ const basicAuth = require('express-basic-auth')
 const mysql = require('mysql')
 const argv = require('minimist')(process.argv.slice(2))
 const authUsers = require('./auth-users.json');
+const port = 3000
 
 const { u: user, p: password, database } = argv
 if (!user || !password) {
@@ -18,30 +19,15 @@ app.use(basicAuth({
   realm: 'Imb4T3st4ppXN'
 }))
 
-const port = 3000
-
 const statSQL = `select count(*) as count, mins from (select concat(date_format(created_at,'%Y-%m-%d %H:'), rpad(floor(minute(created_at) / 10) * 10, 2, 0)) as mins from fazhi_toupiao where vote_content like ?) as t group by mins;`
 
-let connection = null
-function handleConnect() {
-	connection = mysql.createConnection({
-		host: 'localhost',
-		user: user,
-		password: password,
-		database: database || 'wx_test'
-	})
-	connection.connect()
-
-	connection.on('error', function(err) {
-    console.log('db error', err)
-    if(err.code === 'PROTOCOL_CONNECTION_LOST') {
-      handleConnect()
-    } else {
-      throw err
-    }
-  })
-}
-handleConnect()
+const pool  = mysql.createPool({
+  connectionLimit: 10,
+  host: 'localhost',
+  user,
+  password,
+  database: database || 'wx_test'
+})
 
 app.use(express.static('public'))
 
@@ -62,7 +48,7 @@ app.get('/stat', (req, res, next) => {
 		return
 	}
 
-	connection.query(statSQL, [`%${key}%`], (err, result) => {
+	pool.query(statSQL, [`%${key}%`], (err, result) => {
 		if (err) {
 			next(err)
 			return
