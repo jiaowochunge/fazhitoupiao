@@ -3,7 +3,11 @@ const express = require('express')
 const basicAuth = require('express-basic-auth')
 const mysql = require('mysql')
 const argv = require('minimist')(process.argv.slice(2))
-const authUsers = require('./auth-users.json');
+const authUsers = require('./auth-users.json')
+const morgan = require('morgan')
+const fs = require('fs')
+const path = require('path')
+
 const port = 3000
 
 const { u: user, p: password, database } = argv
@@ -18,6 +22,9 @@ app.use(basicAuth({
 	challenge: true,
   realm: 'Imb4T3st4ppXN'
 }))
+
+const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
+app.use(morgan('combined', { stream: accessLogStream }))
 
 const statSQL = `select count(*) as count, mins from (select concat(date_format(created_at,'%Y-%m-%d %H:'), rpad(floor(minute(created_at) / 10) * 10, 2, 0)) as mins from fazhi_toupiao where vote_content like ?) as t group by mins;`
 
