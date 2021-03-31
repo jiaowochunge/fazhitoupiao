@@ -63,6 +63,7 @@ app.get('/stat', (req, res, next) => {
 
 		storeCache(key, result)
 		res.header('Cache-Control', 'public, max-age=604800, immutable');
+		res.header('Content-Type', 'text/plain; charset=UTF-8');
 		res.json(result)
 	})
 })
