@@ -12,14 +12,14 @@ const port = 3000
 
 const { u: user, p: password, database } = argv
 if (!user || !password) {
-	console.log('usage: node index.js -u "username" -p "password" -database "dbname"')
-	process.exit(1)
+  console.log('usage: node index.js -u "username" -p "password" -database "dbname"')
+  process.exit(1)
 }
 
 const app = express()
 app.use(basicAuth({
-	users: authUsers,
-	challenge: true,
+  users: authUsers,
+  challenge: true,
   realm: 'Imb4T3st4ppXN'
 }))
 
@@ -43,29 +43,29 @@ app.get('/', (req, res) => {
 })
 
 app.get('/stat', (req, res, next) => {
-	const query = req.query
-	const key = query.q
-	if (!key || key.length < 2) {
-		next(new Error('too short to search'))
-	}
+  const query = req.query
+  const key = query.q
+  if (!key || key.length < 2) {
+    next(new Error('too short to search'))
+  }
 
-	const cachedResult = getCachedResult(key)
-	if (cachedResult) {
-		res.json(cachedResult)
-		return
-	}
+  const cachedResult = getCachedResult(key)
+  if (cachedResult) {
+    res.json(cachedResult)
+    return
+  }
 
-	pool.query(statSQL, [`%${key}%`], (err, result) => {
-		if (err) {
-			next(err)
-			return
-		}
+  pool.query(statSQL, [`%${key}%`], (err, result) => {
+    if (err) {
+      next(err)
+      return
+    }
 
-		storeCache(key, result)
-		res.header('Cache-Control', 'public, max-age=604800, immutable');
-		res.header('Content-Type', 'text/plain; charset=UTF-8');
-		res.json(result)
-	})
+    storeCache(key, result)
+    res.header('Cache-Control', 'public, max-age=604800, immutable');
+    res.header('Content-Type', 'text/plain; charset=UTF-8');
+    res.json(result)
+  })
 })
 
 app.listen(port, () => {
